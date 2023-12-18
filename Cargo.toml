@@ -1,0 +1,4 @@
+[workspace]
+members = [
+    "src/smart_recipe_backend",
+]
