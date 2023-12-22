@@ -19,10 +19,16 @@ enum MealType {
 }
 
 #[derive(CandidType, Clone, Serialize, Deserialize)]
+struct Ingredient {
+    name: String,
+    quantity: u64,
+}
+
+#[derive(CandidType, Clone, Serialize, Deserialize)]
 struct Recipe {
     id: u64,
     name: String,
-    ingredients: Vec<String>,
+    ingredients: Vec<Ingredient>,
     instructions: Vec<String>,
     nutritional_info: Vec<String>,
     meal_type: MealType,
@@ -65,7 +71,7 @@ thread_local! {
 #[derive(CandidType, Serialize, Deserialize)]
 struct RecipePayload {
     name: String,
-    ingredients: Vec<String>,
+    ingredients: Vec<Ingredient>,
     instructions: Vec<String>,
     nutritional_info: Vec<String>,
     meal_type: MealType,
@@ -95,7 +101,6 @@ fn search_by_meal_type(meal_type: MealType) -> Vec<Recipe> {
     recipes
 }
 
-
 #[ic_cdk::update]
 fn add_recipe(recipe_payload: RecipePayload) -> Option<Recipe> {
     let id = ID_COUNTER
@@ -105,10 +110,19 @@ fn add_recipe(recipe_payload: RecipePayload) -> Option<Recipe> {
         })
         .expect("Cannot increment id counter");
 
+    let ingredients = recipe_payload
+        .ingredients
+        .iter()
+        .map(|ing| Ingredient {
+            name: ing.name.clone(),
+            quantity: ing.quantity.clone(),
+        })
+        .collect();
+
     let recipe = Recipe {
         id,
         name: recipe_payload.name,
-        ingredients: recipe_payload.ingredients,
+        ingredients,
         instructions: recipe_payload.instructions,
         nutritional_info: recipe_payload.nutritional_info,
         meal_type: recipe_payload.meal_type,
@@ -119,6 +133,7 @@ fn add_recipe(recipe_payload: RecipePayload) -> Option<Recipe> {
     do_insert_recipe(&recipe);
     Some(recipe)
 }
+
 
 #[ic_cdk::update]
 fn update_recipe(id: u64, payload: RecipePayload) -> Result<Recipe, Error> {

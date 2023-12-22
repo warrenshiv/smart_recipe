@@ -1,17 +1,24 @@
 type Error = variant { NotFound : record { msg : text } };
+
 type Recipe = record {
   id : nat64;
   name : text;
-  ingredients : vec text;
+  ingredients : vec Ingredient;
   instructions : vec text;
   nutritional_info : vec text;
   meal_type : variant { Breakfast; Lunch; Dinner; Snack; Desserts };
   updated_at : opt nat64;
   created_at : nat64;
 };
+
+type Ingredient = record {
+  name : text;
+  quantity : nat64;
+};
+
 type RecipePayload = record {
   name : text;
-  ingredients : vec text;
+  ingredients : vec Ingredient;
   instructions : vec text;
   nutritional_info : vec text;
   meal_type : variant { Breakfast; Lunch; Dinner; Snack; Desserts };
