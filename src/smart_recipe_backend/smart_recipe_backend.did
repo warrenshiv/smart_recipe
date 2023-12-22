@@ -1,3 +1,27 @@
+type Error = variant { NotFound : record { msg : text } };
+type Recipe = record {
+  id : nat64;
+  name : text;
+  ingredients : vec text;
+  instructions : vec text;
+  nutritional_info : vec text;
+  meal_type : variant { Breakfast; Lunch; Dinner; Snack; Desserts };
+  updated_at : opt nat64;
+  created_at : nat64;
+};
+type RecipePayload = record {
+  name : text;
+  ingredients : vec text;
+  instructions : vec text;
+  nutritional_info : vec text;
+  meal_type : variant { Breakfast; Lunch; Dinner; Snack; Desserts };
+};
+type Result = variant { Ok : Recipe; Err : Error };
+
 service : {
-    "greet": (text) -> (text) query;
-}
+  add_recipe : (RecipePayload) -> (opt Recipe);
+  delete_recipe : (nat64) -> (Result);
+  search_recipe : (nat64) -> (Result) query;
+  search_by_meal_type : (nat64) -> (Result) query;
+  update_recipe : (nat64, RecipePayload) -> (Result);
+};
