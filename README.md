@@ -52,6 +52,20 @@ npm start
 
 Which will start a server at `http://localhost:8080`, proxying API requests to the replica at port 4943.
 
+## Key Features:
+- 🍳 **Digital Recipe Repository:** Organize, store, and access your favorite recipes effortlessly.
+- 🛒 **Ingredient Inventory & Shopping List:** Generate dynamic shopping lists based on recipes and manage your inventory seamlessly.
+- 📖 **Cooking Guides & Timers:** Step-by-step guidance with integrated timers for precise cooking.
+- 🥗 **Nutritional Information:** Access detailed nutritional data for informed meal planning.
+- 👩‍🍳 **Community Engagement:** Collaborate, share recipes, rate creations, and engage with fellow cooking enthusiasts.
+
+## How it Works:
+- 🗃 **Digital Repository & Inventory Management:** Upload recipes, sync ingredients, and manage your inventory easily.
+- 👩‍🍳 **Cooking Assistance:** Follow recipes with ingredient lists and step-by-step guidance, aided by automatic timers.
+- 📊 **Nutritional Information:** View nutritional breakdowns before meal preparation.
+- 🤝 **Community Engagement:** Connect, share, and discover new culinary delights within a vibrant cooking community.
+
+
 ### Note on frontend environment variables
 
 If you are hosting frontend code somewhere without using DFX, you may need to make one of the following adjustments to ensure your project does not fetch the root key in production:
