@@ -9,7 +9,7 @@ use std::{borrow::Cow, cell::RefCell};
 type Memory = VirtualMemory<DefaultMemoryImpl>;
 type IdCell = Cell<u64, Memory>;
 
-#[derive(CandidType, Clone, Serialize, Deserialize)]
+#[derive(CandidType, Clone, Serialize, Deserialize, PartialEq, Eq)]
 enum MealType {
     Breakfast,
     Lunch,
@@ -82,14 +82,19 @@ fn search_recipe(id: u64) -> Result<Recipe, Error> {
 }
 
 #[ic_cdk::query]
-fn search_by_meal_type(id: u64) -> Result<Recipe, Error> {
-    match _get_recipe(&id) {
-        Some(recipe) => Ok(recipe),
-        None => Err(Error::NotFound {
-            msg: format!("A recipe with id={} not found", id),
-        }),
-    }
+fn search_by_meal_type(meal_type: MealType) -> Vec<Recipe> {
+    let recipes = RECIPE_STORAGE.with(|service| {
+        service
+            .borrow()
+            .iter()
+            .map(|(_, recipe)| recipe.clone())
+            .filter(|recipe| recipe.meal_type == meal_type)
+            .collect::<Vec<Recipe>>()
+    });
+
+    recipes
 }
+
 
 #[ic_cdk::update]
 fn add_recipe(recipe_payload: RecipePayload) -> Option<Recipe> {
