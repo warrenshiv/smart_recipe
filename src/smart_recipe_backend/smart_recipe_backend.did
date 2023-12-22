@@ -13,7 +13,7 @@ type Recipe = record {
 
 type Ingredient = record {
   name : text;
-  quantity : nat64;
+  quantity : text;
 };
 
 type RecipePayload = record {

@@ -21,7 +21,7 @@ enum MealType {
 #[derive(CandidType, Clone, Serialize, Deserialize)]
 struct Ingredient {
     name: String,
-    quantity: u64,
+    quantity: String,
 }
 
 #[derive(CandidType, Clone, Serialize, Deserialize)]
