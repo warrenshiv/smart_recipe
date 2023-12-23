@@ -250,6 +250,9 @@ fn generate_shopping_list(recipes: Vec<u64>) -> Vec<Ingredient> {
                 let required_quantity = required_ingredients.entry(ingredient.name.clone()).or_insert(0);
                 *required_quantity += ingredient.quantity;
             }
+        } else {
+            // If a recipe is not found, return an error
+            panic!("Recipe with id={} not found", recipe_id);
         }
     }
 
