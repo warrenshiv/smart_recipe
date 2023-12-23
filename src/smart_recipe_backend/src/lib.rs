@@ -181,6 +181,12 @@ fn search_recipe_by_meal_type(meal_type: MealType) -> Vec<Recipe> {
     recipes
 }
 
+// Function to view all Ingredients in inventory
+#[ic_cdk::query]
+fn view_inventory() -> Vec<Ingredient> {
+    INGREDIENT_INVENTORY.with(|inventory| inventory.borrow().values().cloned().collect())
+}
+
 // Function to add ingredients to inventory
 #[ic_cdk::update]
 fn add_ingredient_to_inventory(ingredient: IngredientPayload) -> Option<Ingredient> {
@@ -228,12 +234,6 @@ fn remove_ingredient_from_inventory(ingredient_name: String, quantity: u64) -> R
             msg: "Failed to access inventory".to_string(), // Handle borrow failure
         }),
     }
-}
-
-
-#[ic_cdk::query]
-fn view_inventory() -> Vec<Ingredient> {
-    INGREDIENT_INVENTORY.with(|inventory| inventory.borrow().values().cloned().collect())
 }
 
 #[ic_cdk::update]
