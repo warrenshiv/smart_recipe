@@ -171,7 +171,9 @@ fn delete_recipe(id: u64) -> Result<Recipe, Error> {
 #[ic_cdk::update]
 fn add_ingredient_to_inventory(ingredient: Ingredient) {
     INGREDIENT_INVENTORY.with(|inventory| {
-        inventory.borrow_mut().insert(ingredient.name.clone(), ingredient);
+        inventory
+            .borrow_mut()
+            .insert(ingredient.name.clone(), ingredient);
     });
 }
 
@@ -189,7 +191,37 @@ fn add_ingredient_to_inventory(ingredient: Ingredient) {
 //     });
 // }
 
+#[ic_cdk::update]
+fn generate_shopping_list(recipes: Vec<u64>) -> Vec<Ingredient> {
+    let mut shopping_list = vec![];
 
+    // Retrieve recipes by their IDs and check their ingredients against the inventory
+    for recipe_id in recipes {
+        if let Some(recipe) = _get_recipe(&recipe_id) {
+            for ingredient in &recipe.ingredients {
+                let is_available = INGREDIENT_INVENTORY.with(|inv| {
+                    inv.borrow()
+                        .get(&ingredient.name)
+                        .map(|inv_item| inv_item.quantity.clone())
+                });
+
+                match is_available {
+                    Some(quantity) if quantity == "0" => {
+                        // If the quantity is zero or the ingredient is not found, add to shopping list
+                        shopping_list.push(ingredient.clone());
+                    }
+                    None => {
+                        // If the ingredient is not found in inventory, add it to the shopping list
+                        shopping_list.push(ingredient.clone());
+                    }
+                    _ => (),
+                }
+            }
+        }
+    }
+
+    shopping_list
+}
 
 #[derive(CandidType, Deserialize, Serialize)]
 enum Error {

@@ -17,11 +17,8 @@ type IngredientPayload = record {
 };
 
 type Ingredient = record {
-  id : nat64;
   name : text;
   quantity : text;
-  updated_at : opt nat64;
-  added_at : nat64;
 };
 
 type RecipePayload = record {
@@ -40,4 +37,5 @@ service : {
   search_by_meal_type : (variant { Breakfast; Lunch; Dinner; Snack; Desserts }) -> (vec Recipe) query;
   update_recipe : (nat64, RecipePayload) -> (Result);
   add_ingredient_to_inventory : (IngredientPayload) -> ();
+  generate_shopping_list : (vec nat64) -> (vec Ingredient);
 };
