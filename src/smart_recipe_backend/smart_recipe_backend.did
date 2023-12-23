@@ -17,8 +17,15 @@ type IngredientPayload = record {
   unit : text;
 };
 
-type Ingredient = record {
+type AddIngredient = record {
   id : nat64;
+  name : text;
+  quantity : nat64;
+  unit : text;
+
+};
+
+type Ingredient = record {
   name : text;
   quantity : nat64;
   unit : text;
@@ -41,8 +48,8 @@ service : {
   search_recipe : (nat64) -> (Result) query;
   search_recipe_by_meal_type : (variant { Breakfast; Lunch; Dinner; Snack; Desserts }) -> (vec Recipe) query;
   update_recipe : (nat64, RecipePayload) -> (Result);
-  add_ingredient_to_inventory : (IngredientPayload) -> (opt Ingredient);
+  add_ingredient_to_inventory : (IngredientPayload) -> (opt AddIngredient);
   remove_ingredient_from_inventory : (text, nat64) -> (variant { Ok : record { id : nat64; name : text; unit : text; quantity : nat64 }; Err : variant { NotFound : record { msg : text } } });
-  view_inventory : () -> (vec Ingredient) query;
-  generate_shopping_list : (vec nat64) -> (vec Ingredient);
+  view_inventory : () -> (vec AddIngredient) query;
+  generate_shopping_list : (vec nat64) -> (vec AddIngredient);
 };
