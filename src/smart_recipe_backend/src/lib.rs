@@ -4,6 +4,7 @@ use candid::{CandidType, Decode, Encode};
 use ic_cdk::api::time;
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
 use ic_stable_structures::{BoundedStorable, Cell, DefaultMemoryImpl, StableBTreeMap, Storable};
+use std::collections::HashMap;
 use std::{borrow::Cow, cell::RefCell};
 
 type Memory = VirtualMemory<DefaultMemoryImpl>;
@@ -66,6 +67,9 @@ thread_local! {
         RefCell::new(StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(1)))
     ));
+
+    // Include the inventory HashMap
+     static INGREDIENT_INVENTORY: RefCell<HashMap<String, Ingredient>> = RefCell::new(HashMap::new());
 }
 
 #[derive(CandidType, Serialize, Deserialize)]
@@ -134,7 +138,6 @@ fn add_recipe(recipe_payload: RecipePayload) -> Option<Recipe> {
     Some(recipe)
 }
 
-
 #[ic_cdk::update]
 fn update_recipe(id: u64, payload: RecipePayload) -> Result<Recipe, Error> {
     match RECIPE_STORAGE.with(|service| service.borrow().get(&id)) {
@@ -163,6 +166,30 @@ fn delete_recipe(id: u64) -> Result<Recipe, Error> {
         }),
     }
 }
+
+// Function to add ingredients to inventory
+#[ic_cdk::update]
+fn add_ingredient_to_inventory(ingredient: Ingredient) {
+    INGREDIENT_INVENTORY.with(|inventory| {
+        inventory.borrow_mut().insert(ingredient.name.clone(), ingredient);
+    });
+}
+
+// Function to remove ingredients after usage by deducting a numeric quantity
+// #[ic_cdk::update]
+// fn remove_from_inventory(ingredient_name: &str, quantity_used: u64) {
+//     INGREDIENT_INVENTORY.with(|inventory| {
+//         if let Some(ingredient) = inventory.borrow_mut().get_mut(ingredient_name) {
+//             if ingredient.quantity >= quantity_used {
+//                 ingredient.quantity -= quantity_used;
+//             } else {
+//                 // Handle insufficient quantity scenario
+//             }
+//         }
+//     });
+// }
+
+
 
 #[derive(CandidType, Deserialize, Serialize)]
 enum Error {
