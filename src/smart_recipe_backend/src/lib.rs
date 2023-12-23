@@ -23,7 +23,8 @@ enum MealType {
 struct Ingredient {
     id: u64,
     name: String,
-    quantity: String,
+    quantity: u64,
+    unit: String
 }
 
 #[derive(CandidType, Clone, Serialize, Deserialize)]
@@ -88,7 +89,8 @@ struct RecipePayload {
 #[derive(CandidType, Serialize, Deserialize)]
 struct IngredientPayload {
     name: String,
-    quantity: String,
+    quantity: u64,
+    unit: String
 }
 
 #[ic_cdk::update]
@@ -107,6 +109,7 @@ fn add_recipe(recipe_payload: RecipePayload) -> Option<Recipe> {
             id: ing.id.clone(),
             name: ing.name.clone(),
             quantity: ing.quantity.clone(),
+            unit: ing.unit.clone(),
         })
         .collect();
 
@@ -191,6 +194,7 @@ fn add_ingredient_to_inventory(ingredient: IngredientPayload) -> Option<Ingredie
         id: new_ingredient_id,
         name: ingredient.name.clone(),
         quantity: ingredient.quantity.clone(),
+        unit: ingredient.unit.clone(),
     };
 
     INGREDIENT_INVENTORY.with(|inventory| {
@@ -238,7 +242,7 @@ fn generate_shopping_list(recipes: Vec<u64>) -> Vec<Ingredient> {
                 });
 
                 match is_available {
-                    Some(quantity) if quantity == "0" => {
+                    Some(quantity) if quantity == 0 => {
                         // If the quantity is zero or the ingredient is not found, add to shopping list
                         shopping_list.push(ingredient.clone());
                     }

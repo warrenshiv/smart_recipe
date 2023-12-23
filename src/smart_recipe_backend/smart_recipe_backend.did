@@ -13,13 +13,16 @@ type Recipe = record {
 
 type IngredientPayload = record {
   name : text;
-  quantity : text;
+  quantity : nat64;
+  unit : text;
 };
 
 type Ingredient = record {
   id : nat64;
   name : text;
-  quantity : text;
+  quantity : nat64;
+  unit : text;
+
 };
 
 type RecipePayload = record {
