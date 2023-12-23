@@ -177,19 +177,20 @@ fn add_ingredient_to_inventory(ingredient: Ingredient) {
     });
 }
 
-// Function to remove ingredients after usage by deducting a numeric quantity
-// #[ic_cdk::update]
-// fn remove_from_inventory(ingredient_name: &str, quantity_used: u64) {
-//     INGREDIENT_INVENTORY.with(|inventory| {
-//         if let Some(ingredient) = inventory.borrow_mut().get_mut(ingredient_name) {
-//             if ingredient.quantity >= quantity_used {
-//                 ingredient.quantity -= quantity_used;
-//             } else {
-//                 // Handle insufficient quantity scenario
-//             }
-//         }
-//     });
-// }
+// Function to remove ingredients from inventory
+#[ic_cdk::update]
+fn remove_ingredient_from_inventory(ingredient_name: String) -> Result<(), Error> {
+    if let Some(ingredient) = INGREDIENT_INVENTORY.with(|inv| inv.borrow_mut().remove(&ingredient_name)) {
+        // Ingredient found and removed successfully
+        Ok(())
+    } else {
+        // Ingredient not found in the inventory
+        Err(Error::NotFound {
+            msg: format!("Ingredient '{}' not found in inventory", ingredient_name),
+        })
+    }
+}
+
 
 #[ic_cdk::update]
 fn generate_shopping_list(recipes: Vec<u64>) -> Vec<Ingredient> {
