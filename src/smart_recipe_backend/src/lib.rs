@@ -21,6 +21,7 @@ enum MealType {
 
 #[derive(CandidType, Clone, Serialize, Deserialize)]
 struct Ingredient {
+    id: u64,
     name: String,
     quantity: String,
 }
@@ -70,6 +71,9 @@ thread_local! {
 
     // Include the inventory HashMap
      static INGREDIENT_INVENTORY: RefCell<HashMap<String, Ingredient>> = RefCell::new(HashMap::new());
+
+    // Include the ingredient id counter
+     static INGREDIENT_ID_COUNTER: RefCell<u64> = RefCell::new(0);
 }
 
 #[derive(CandidType, Serialize, Deserialize)]
@@ -81,28 +85,10 @@ struct RecipePayload {
     meal_type: MealType,
 }
 
-#[ic_cdk::query]
-fn search_recipe(id: u64) -> Result<Recipe, Error> {
-    match _get_recipe(&id) {
-        Some(recipe) => Ok(recipe),
-        None => Err(Error::NotFound {
-            msg: format!("A recipe with id={} not found", id),
-        }),
-    }
-}
-
-#[ic_cdk::query]
-fn search_by_meal_type(meal_type: MealType) -> Vec<Recipe> {
-    let recipes = RECIPE_STORAGE.with(|service| {
-        service
-            .borrow()
-            .iter()
-            .map(|(_, recipe)| recipe.clone())
-            .filter(|recipe| recipe.meal_type == meal_type)
-            .collect::<Vec<Recipe>>()
-    });
-
-    recipes
+#[derive(CandidType, Serialize, Deserialize)]
+struct IngredientPayload {
+    name: String,
+    quantity: String,
 }
 
 #[ic_cdk::update]
@@ -118,6 +104,7 @@ fn add_recipe(recipe_payload: RecipePayload) -> Option<Recipe> {
         .ingredients
         .iter()
         .map(|ing| Ingredient {
+            id: ing.id.clone(),
             name: ing.name.clone(),
             quantity: ing.quantity.clone(),
         })
@@ -167,20 +154,59 @@ fn delete_recipe(id: u64) -> Result<Recipe, Error> {
     }
 }
 
+#[ic_cdk::query]
+fn search_recipe(id: u64) -> Result<Recipe, Error> {
+    match _get_recipe(&id) {
+        Some(recipe) => Ok(recipe),
+        None => Err(Error::NotFound {
+            msg: format!("A recipe with id={} not found", id),
+        }),
+    }
+}
+
+#[ic_cdk::query]
+fn search_by_meal_type(meal_type: MealType) -> Vec<Recipe> {
+    let recipes = RECIPE_STORAGE.with(|service| {
+        service
+            .borrow()
+            .iter()
+            .map(|(_, recipe)| recipe.clone())
+            .filter(|recipe| recipe.meal_type == meal_type)
+            .collect::<Vec<Recipe>>()
+    });
+
+    recipes
+}
+
 // Function to add ingredients to inventory
 #[ic_cdk::update]
-fn add_ingredient_to_inventory(ingredient: Ingredient) {
+fn add_ingredient_to_inventory(ingredient: IngredientPayload) -> Option<Ingredient> {
+    let new_ingredient_id = INGREDIENT_ID_COUNTER.with(|counter| {
+        let current_id = *counter.borrow();
+        *counter.borrow_mut() = current_id + 1; // Increment the counter
+        current_id + 1 // Use the incremented value as the ID for the new ingredient
+    });
+
+    let new_ingredient = Ingredient {
+        id: new_ingredient_id,
+        name: ingredient.name.clone(),
+        quantity: ingredient.quantity.clone(),
+    };
+
     INGREDIENT_INVENTORY.with(|inventory| {
         inventory
             .borrow_mut()
-            .insert(ingredient.name.clone(), ingredient);
+            .insert(ingredient.name.clone(), new_ingredient.clone());
     });
+
+    Some(new_ingredient) // Return the newly added ingredient as an Option
 }
+
 
 // Function to remove ingredients from inventory
 #[ic_cdk::update]
 fn remove_ingredient_from_inventory(ingredient_name: String) -> Result<(), Error> {
-    if let Some(ingredient) = INGREDIENT_INVENTORY.with(|inv| inv.borrow_mut().remove(&ingredient_name)) {
+    if let Some(_ingredient) = INGREDIENT_INVENTORY.with(|inv| inv.borrow_mut().remove(&ingredient_name)) {
         // Ingredient found and removed successfully
         Ok(())
     } else {
