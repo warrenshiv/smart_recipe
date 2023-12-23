@@ -24,7 +24,7 @@ struct Ingredient {
     id: u64,
     name: String,
     quantity: u64,
-    unit: String
+    unit: String,
 }
 
 #[derive(CandidType, Clone, Serialize, Deserialize)]
@@ -90,7 +90,7 @@ struct RecipePayload {
 struct IngredientPayload {
     name: String,
     quantity: u64,
-    unit: String
+    unit: String,
 }
 
 #[ic_cdk::update]
@@ -168,7 +168,7 @@ fn search_recipe(id: u64) -> Result<Recipe, Error> {
 }
 
 #[ic_cdk::query]
-fn search_by_meal_type(meal_type: MealType) -> Vec<Recipe> {
+fn search_recipe_by_meal_type(meal_type: MealType) -> Vec<Recipe> {
     let recipes = RECIPE_STORAGE.with(|service| {
         service
             .borrow()
@@ -206,25 +206,34 @@ fn add_ingredient_to_inventory(ingredient: IngredientPayload) -> Option<Ingredie
     Some(new_ingredient) // Return the newly added ingredient as an Option
 }
 
-
 // Function to remove ingredients from inventory
 #[ic_cdk::update]
-fn remove_ingredient_from_inventory(ingredient_name: String) -> Result<(), Error> {
-    if let Some(_ingredient) = INGREDIENT_INVENTORY.with(|inv| inv.borrow_mut().remove(&ingredient_name)) {
-        // Ingredient found and removed successfully
-        Ok(())
-    } else {
-        // Ingredient not found in the inventory
-        Err(Error::NotFound {
-            msg: format!("Ingredient '{}' not found in inventory", ingredient_name),
-        })
+fn remove_ingredient_from_inventory(ingredient_name: String, quantity: u64) -> Result<Ingredient, Error> {
+    let inventory = INGREDIENT_INVENTORY.try_with(|inv| inv.borrow().clone());
+
+    match inventory {
+        Ok(mut inventory) => {
+            if let Some(ingredient) = inventory.get(&ingredient_name) {
+                if ingredient.quantity == quantity {
+                    if let Some(removed_ingredient) = inventory.remove(&ingredient_name) {
+                        return Ok(removed_ingredient);
+                    }
+                }
+            }
+            Err(Error::NotFound {
+                msg: format!("Ingredient '{}' with quantity '{}' not found in inventory", ingredient_name, quantity),
+            })
+        }
+        Err(_) => Err(Error::NotFound {
+            msg: "Failed to access inventory".to_string(), // Handle borrow failure
+        }),
     }
 }
 
+
 #[ic_cdk::query]
 fn view_inventory() -> Vec<Ingredient> {
-    INGREDIENT_INVENTORY
-        .with(|inventory| inventory.borrow().values().cloned().collect())
+    INGREDIENT_INVENTORY.with(|inventory| inventory.borrow().values().cloned().collect())
 }
 
 #[ic_cdk::update]
