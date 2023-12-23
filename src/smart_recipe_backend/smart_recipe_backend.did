@@ -38,5 +38,6 @@ service : {
   update_recipe : (nat64, RecipePayload) -> (Result);
   add_ingredient_to_inventory : (IngredientPayload) -> ();
   remove_ingredient_from_inventory : (text) -> (Result);
+  view_inventory : () -> (vec Ingredient) query;
   generate_shopping_list : (vec nat64) -> (vec Ingredient);
 };

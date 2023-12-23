@@ -191,6 +191,11 @@ fn remove_ingredient_from_inventory(ingredient_name: String) -> Result<(), Error
     }
 }
 
+#[ic_cdk::query]
+fn view_inventory() -> Vec<Ingredient> {
+    INGREDIENT_INVENTORY
+        .with(|inventory| inventory.borrow().values().cloned().collect())
+}
 
 #[ic_cdk::update]
 fn generate_shopping_list(recipes: Vec<u64>) -> Vec<Ingredient> {
