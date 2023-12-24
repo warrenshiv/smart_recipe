@@ -257,10 +257,8 @@ fn remove_ingredient_from_inventory(
 fn generate_shopping_list(recipes: Vec<u64>) -> Vec<Ingredient> {
     let mut shopping_list = vec![];
 
-    // Create a HashMap to track the required quantities of each ingredient
     let mut required_ingredients: HashMap<String, u64> = HashMap::new();
 
-    // Retrieve recipes by their IDs and track the required quantities of ingredients
     for recipe_id in recipes {
         if let Some(recipe) = _get_recipe(&recipe_id) {
             for ingredient in &recipe.ingredients {
@@ -275,28 +273,36 @@ fn generate_shopping_list(recipes: Vec<u64>) -> Vec<Ingredient> {
         }
     }
 
-    // Check the required ingredients against the inventory and update the shopping list
     for (ingredient_name, required_quantity) in required_ingredients {
         let inventory_quantity = INGREDIENT_INVENTORY.with(|inv| {
             inv.borrow()
                 .get(&ingredient_name)
                 .map(|inv_item| inv_item.quantity)
-                .unwrap_or(0) // Default to 0 if the ingredient is not found
+                .unwrap_or(0)
         });
 
         if inventory_quantity < required_quantity {
-            // If the inventory quantity is less than required, add to shopping list
             let missing_quantity = required_quantity - inventory_quantity;
             shopping_list.push(Ingredient {
-                id: 0, // Replace with appropriate id if needed
+                id: 0,
                 name: ingredient_name.clone(),
                 quantity: missing_quantity,
-                unit: "".to_string(), // Add unit information if available
+                unit: "".to_string(),
             });
         }
     }
 
-    shopping_list
+    if shopping_list.is_empty() {
+        // If the shopping list is empty, all ingredients are sufficient
+        vec![Ingredient {
+            id: 0,
+            name: "All ingredients are sufficient".to_string(),
+            quantity: 0,
+            unit: "".to_string(),
+        }]
+    } else {
+        shopping_list
+    }
 }
 
 #[derive(CandidType, Deserialize, Serialize)]
