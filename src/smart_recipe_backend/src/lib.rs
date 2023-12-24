@@ -190,27 +190,33 @@ fn view_inventory() -> Vec<Ingredient> {
 // Function to add ingredients to inventory
 #[ic_cdk::update]
 fn add_ingredient_to_inventory(ingredient: IngredientPayload) -> Option<Ingredient> {
-    let new_ingredient_id = INGREDIENT_ID_COUNTER.with(|counter| {
-        let current_id = *counter.borrow();
-        *counter.borrow_mut() = current_id + 1; // Increment the counter
-        current_id + 1 // Use the incremented value as the ID for the new ingredient
-    });
-
     let new_ingredient = Ingredient {
-        id: new_ingredient_id,
+        id: INGREDIENT_ID_COUNTER.with(|counter| {
+            let current_id = *counter.borrow();
+            *counter.borrow_mut() = current_id + 1;
+            current_id + 1
+        }),
         name: ingredient.name.clone(),
         quantity: ingredient.quantity.clone(),
         unit: ingredient.unit.clone(),
     };
 
-    INGREDIENT_INVENTORY.with(|inventory| {
-        inventory
-            .borrow_mut()
-            .insert(ingredient.name.clone(), new_ingredient.clone());
+    let result = INGREDIENT_INVENTORY.with(|inventory| {
+        let mut inventory = inventory.borrow_mut();
+        if let Some(existing_ingredient) = inventory.get_mut(&ingredient.name) {
+            // If the ingredient already exists in inventory, increment its quantity
+            existing_ingredient.quantity += ingredient.quantity;
+            Some(existing_ingredient.clone())
+        } else {
+            // If it doesn't exist, add it to the inventory
+            inventory.insert(ingredient.name.clone(), new_ingredient.clone());
+            Some(new_ingredient.clone())
+        }
     });
 
-    Some(new_ingredient) // Return the newly added ingredient as an Option
+    result
 }
+
 
 // Function to remove ingredients from inventory
 #[ic_cdk::update]
