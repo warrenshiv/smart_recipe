@@ -218,23 +218,34 @@ fn remove_ingredient_from_inventory(
     ingredient_name: String,
     quantity: u64,
 ) -> Result<Ingredient, Error> {
-    let inventory = INGREDIENT_INVENTORY.try_with(|inv| inv.borrow().clone());
+    let mut inventory = INGREDIENT_INVENTORY.try_with(|inv| inv.borrow_mut().clone());
 
-    match inventory {
-        Ok(mut inventory) => {
-            if let Some(ingredient) = inventory.get(&ingredient_name) {
-                if ingredient.quantity == quantity {
-                    if let Some(removed_ingredient) = inventory.remove(&ingredient_name) {
-                        return Ok(removed_ingredient);
-                    }
+    match &mut inventory {
+        Ok(ref mut inv) => {
+            if let Some(ingredient) = inv.get_mut(&ingredient_name) {
+                if ingredient.quantity >= quantity {
+                    ingredient.quantity -= quantity;
+                    // Create a new Ingredient with the deducted quantity
+                    let removed_ingredient = Ingredient {
+                        id: ingredient.id.clone(),
+                        name: ingredient.name.clone(),
+                        unit: ingredient.unit.clone(),
+                        quantity,
+                    };
+                    return Ok(removed_ingredient);
+                } else {
+                    return Err(Error::NotFound {
+                        msg: format!(
+                            "Insufficient quantity of '{}' in inventory",
+                            ingredient_name
+                        ),
+                    });
                 }
+            } else {
+                return Err(Error::NotFound {
+                    msg: format!("Ingredient '{}' not found in inventory", ingredient_name),
+                });
             }
-            Err(Error::NotFound {
-                msg: format!(
-                    "Ingredient '{}' with quantity '{}' not found in inventory",
-                    ingredient_name, quantity
-                ),
-            })
         }
         Err(_) => Err(Error::NotFound {
             msg: "Failed to access inventory".to_string(), // Handle borrow failure
