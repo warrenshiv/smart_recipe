@@ -218,40 +218,34 @@ fn remove_ingredient_from_inventory(
     ingredient_name: String,
     quantity: u64,
 ) -> Result<Ingredient, Error> {
-    let mut inventory = INGREDIENT_INVENTORY.try_with(|inv| inv.borrow_mut().clone());
+    INGREDIENT_INVENTORY.with(|inventory| {
+        let mut inventory = inventory.borrow_mut();
 
-    match &mut inventory {
-        Ok(ref mut inv) => {
-            if let Some(ingredient) = inv.get_mut(&ingredient_name) {
-                if ingredient.quantity >= quantity {
-                    ingredient.quantity -= quantity;
-                    // Create a new Ingredient with the deducted quantity
-                    let removed_ingredient = Ingredient {
-                        id: ingredient.id.clone(),
-                        name: ingredient.name.clone(),
-                        unit: ingredient.unit.clone(),
-                        quantity,
-                    };
-                    return Ok(removed_ingredient);
-                } else {
-                    return Err(Error::NotFound {
-                        msg: format!(
-                            "Insufficient quantity of '{}' in inventory",
-                            ingredient_name
-                        ),
-                    });
-                }
+        if let Some(ingredient) = inventory.get_mut(&ingredient_name) {
+            if ingredient.quantity >= quantity {
+                ingredient.quantity -= quantity;
+                // Create a new Ingredient with the deducted quantity
+                let removed_ingredient = Ingredient {
+                    id: ingredient.id,
+                    name: ingredient.name.clone(),
+                    unit: ingredient.unit.clone(),
+                    quantity,
+                };
+                return Ok(removed_ingredient);
             } else {
                 return Err(Error::NotFound {
-                    msg: format!("Ingredient '{}' not found in inventory", ingredient_name),
+                    msg: format!("Insufficient quantity of '{}' in inventory", ingredient_name),
                 });
             }
+        } else {
+            return Err(Error::NotFound {
+                msg: format!("Ingredient '{}' not found in inventory", ingredient_name),
+            });
         }
-        Err(_) => Err(Error::NotFound {
-            msg: "Failed to access inventory".to_string(), // Handle borrow failure
-        }),
-    }
+    })
 }
+
+
 
 #[ic_cdk::update]
 fn generate_shopping_list(recipes: Vec<u64>) -> Vec<Ingredient> {
