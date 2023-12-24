@@ -52,19 +52,41 @@ npm start
 
 Which will start a server at `http://localhost:8080`, proxying API requests to the replica at port 4943.
 
-## Key Features:
+## Key Features
 - 🍳 **Digital Recipe Repository:** Organize, store, and access your favorite recipes effortlessly.
 - 🛒 **Ingredient Inventory & Shopping List:** Generate dynamic shopping lists based on recipes and manage your inventory seamlessly.
-- 📖 **Cooking Guides & Timers:** Step-by-step guidance with integrated timers for precise cooking.
+- 📖 **Cooking Guides & Timers:** Step-by-step guidance for precise cooking.
 - 🥗 **Nutritional Information:** Access detailed nutritional data for informed meal planning.
-- 👩‍🍳 **Community Engagement:** Collaborate, share recipes, rate creations, and engage with fellow cooking enthusiasts.
 
-## How it Works:
+## Data Structures
+
+- **`MealType`**: Enum representing meal types.
+- **`Ingredient`**: Struct for ingredient details.
+- **`Recipe`**: Struct defining a recipe with various attributes.
+- **`RecipePayload`** and **`IngredientPayload`**: Simplified structs used in recipe and ingredient operations.
+
+## Memory Management
+
+- Utilizes `MemoryManager` for memory operations.
+- `StableBTreeMap` stores recipes.
+- `HashMap` (`INGREDIENT_INVENTORY`) stores ingredients.
+
+## Functionalities
+
+1. **Recipe Management**:
+   - Add, update, delete, and search recipes by ID or meal type.
+2. **Ingredient Inventory Management**:
+   - View all ingredients in inventory.
+   - Add or remove ingredients.
+3. **Shopping List Generation**:
+   - Generate shopping lists based on recipe IDs.
+4. **Error Handling**:
+   - Custom `Error` enum for error management.
+
+## How it Works
 - 🗃 **Digital Repository & Inventory Management:** Upload recipes, sync ingredients, and manage your inventory easily.
-- 👩‍🍳 **Cooking Assistance:** Follow recipes with ingredient lists and step-by-step guidance, aided by automatic timers.
+- 👩‍🍳 **Cooking Assistance:** Follow recipes with ingredient lists and step-by-step guidance.
 - 📊 **Nutritional Information:** View nutritional breakdowns before meal preparation.
-- 🤝 **Community Engagement:** Connect, share, and discover new culinary delights within a vibrant cooking community.
-
 
 ### Note on frontend environment variables
 
