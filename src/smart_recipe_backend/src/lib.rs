@@ -183,8 +183,16 @@ fn search_recipe_by_meal_type(meal_type: MealType) -> Vec<Recipe> {
 
 // Function to view all Ingredients in inventory
 #[ic_cdk::query]
-fn view_inventory() -> Vec<Ingredient> {
-    INGREDIENT_INVENTORY.with(|inventory| inventory.borrow().values().cloned().collect())
+fn view_inventory() -> Result<Vec<Ingredient>, Error> {
+    INGREDIENT_INVENTORY.with(|inventory| {
+        let inventory = inventory.borrow();
+        if inventory.is_empty() {
+            return Err(Error::NotFound {
+                msg: "Inventory is empty".to_string(),
+            });
+        }
+        Ok(inventory.values().cloned().collect())
+    })
 }
 
 // Function to add ingredients to inventory
@@ -214,7 +222,10 @@ fn add_ingredient_to_inventory(ingredient: IngredientPayload) -> Option<Ingredie
 
 // Function to remove ingredients from inventory
 #[ic_cdk::update]
-fn remove_ingredient_from_inventory(ingredient_name: String, quantity: u64) -> Result<Ingredient, Error> {
+fn remove_ingredient_from_inventory(
+    ingredient_name: String,
+    quantity: u64,
+) -> Result<Ingredient, Error> {
     let inventory = INGREDIENT_INVENTORY.try_with(|inv| inv.borrow().clone());
 
     match inventory {
@@ -227,7 +238,10 @@ fn remove_ingredient_from_inventory(ingredient_name: String, quantity: u64) -> R
                 }
             }
             Err(Error::NotFound {
-                msg: format!("Ingredient '{}' with quantity '{}' not found in inventory", ingredient_name, quantity),
+                msg: format!(
+                    "Ingredient '{}' with quantity '{}' not found in inventory",
+                    ingredient_name, quantity
+                ),
             })
         }
         Err(_) => Err(Error::NotFound {
@@ -247,7 +261,9 @@ fn generate_shopping_list(recipes: Vec<u64>) -> Vec<Ingredient> {
     for recipe_id in recipes {
         if let Some(recipe) = _get_recipe(&recipe_id) {
             for ingredient in &recipe.ingredients {
-                let required_quantity = required_ingredients.entry(ingredient.name.clone()).or_insert(0);
+                let required_quantity = required_ingredients
+                    .entry(ingredient.name.clone())
+                    .or_insert(0);
                 *required_quantity += ingredient.quantity;
             }
         } else {
@@ -279,7 +295,6 @@ fn generate_shopping_list(recipes: Vec<u64>) -> Vec<Ingredient> {
 
     shopping_list
 }
-
 
 #[derive(CandidType, Deserialize, Serialize)]
 enum Error {
