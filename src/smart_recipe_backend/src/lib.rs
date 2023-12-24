@@ -183,16 +183,8 @@ fn search_recipe_by_meal_type(meal_type: MealType) -> Vec<Recipe> {
 
 // Function to view all Ingredients in inventory
 #[ic_cdk::query]
-fn view_inventory() -> Result<Vec<Ingredient>, Error> {
-    INGREDIENT_INVENTORY.with(|inventory| {
-        let inventory = inventory.borrow();
-        if inventory.is_empty() {
-            return Err(Error::NotFound {
-                msg: "Inventory is empty".to_string(),
-            });
-        }
-        Ok(inventory.values().cloned().collect())
-    })
+fn view_inventory() -> Vec<Ingredient> {
+    INGREDIENT_INVENTORY.with(|inventory| inventory.borrow().values().cloned().collect())
 }
 
 // Function to add ingredients to inventory
